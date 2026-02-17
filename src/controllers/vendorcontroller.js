@@ -89,7 +89,7 @@ exports.login = async (req, res) => {
     );
 
     
-    res.cookie("vendor_token", vendor_token, {
+    res.cookie("token", vendor_token, {
       httpOnly: true,
       secure: false, // true only in production https
       sameSite: "lax",
