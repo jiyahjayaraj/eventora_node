@@ -3,7 +3,7 @@ require("dotenv").config();
 
 exports.vendorauth = (req, res, next) => {
   try {
-    const token = req.cookies.vendor_token;
+    const token = req.cookies.token;
 
 
     if (!token) {

@@ -1,48 +1,126 @@
 const Order = require("../models/order");
 const Event = require("../models/eventModel");
+const User = require("../models/userModel")
 
-/* CREATE ORDER */
+/* ===========================
+   CREATE ORDER (User Only)
+=========================== */
 exports.createOrder = async (req, res) => {
-  try {
+    const userId = req.user; // 👈 SAME as admin
+  
+    try {
+   if (!userId) {
+        return res.status(404).json({ message: "not authenticated" });
+      }
+      const user = await User.findById(userId).select("-password");
+      if (!user) {
+        return res.status(404).json({ message: "user not found" });
+      }
+  
+    
+  
+
     const { eventId, quantity } = req.body;
 
-    const userId = req.user?.id || req.body.userId;
-
-    if (!userId) {
-      return res.status(400).json({ message: "User not identified" });
+    if (!eventId || !quantity) {
+      return res.status(400).json({
+        message: "Event ID and quantity required"
+      });
     }
 
+    // 3️⃣ Check event exists
     const event = await Event.findById(eventId);
+
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({
+        message: "Event not found"
+      });
     }
 
-    const totalAmount = event.price * quantity;
+    // 4️⃣ Check ticket availability
+    if (event.availableTickets < quantity) {
+      return res.status(400).json({
+        message: "Not enough tickets available"
+      });
+    }
 
-    const order = await Order.create({
-      userId,
-      vendorId: event.vendorId,
-      eventId,
+    // 5️⃣ Create order safely
+    const order = new Order({
+      userId ,         // from JWT
+      eventId: event._id,
+      vendorId: event.vendorId,    // from event
       quantity,
-      totalAmount
+      totalAmount: event.price * quantity,
+      paymentStatus: "pending"
     });
 
-    res.status(201).json(order);
+    await order.save();
+
+    // 6️⃣ Reduce tickets
+    event.availableTickets -= quantity;
+    await event.save();
+
+    res.status(201).json({
+      message: "Order created successfully",
+      order
+    });
 
   } catch (error) {
+    console.error("ORDER ERROR:", error);
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+/* ===========================
+   GET ORDERS BY USER
+=========================== */
+exports.getOrdersByUser = async (req, res) => {
+  try {
+    const userId = req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const orders = await Order.find({ userId })
+      .populate("eventId")
+      .populate("vendorId")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "User orders fetched successfully",
+      orders
+    });
+
+  } catch (error) {
+    console.error("GET USER ORDERS ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
+/* ===========================
+   GET ORDERS BY VENDOR
+=========================== */
+exports.getOrdersByVendor = async (req, res) => {
+  try {
+    const vendorId = req.user;
 
+    if (!vendorId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-/* USER ORDERS */
-exports.getUserOrders = async (req, res) => {
-  const orders = await Order.find({ userId: req.user.id });
-  res.json(orders);
-};
+    const orders = await Order.find({ vendorId })
+      .populate("eventId")
+      .populate("userId")
+      .sort({ createdAt: -1 });
 
-/* VENDOR ORDERS */
-exports.getVendorOrders = async (req, res) => {
-  const orders = await Order.find({ vendorId: req.user.id });
-  res.json(orders);
+    res.status(200).json({
+      message: "Vendor orders fetched successfully",
+      orders
+    });
+
+  } catch (error) {
+    console.error("GET VENDOR ORDERS ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
 };
