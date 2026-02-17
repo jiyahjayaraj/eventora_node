@@ -25,6 +25,10 @@ app.use("/uploads", express.static(path.join(__dirname, "upload")));
 const userRoutes = require("./src/routes/userroute");
 const vendorRoutes = require("./src/routes/venderroute");
 const eventRoutes = require("./src/routes/eventrouter");
+const orderRoutes = require("./src/routes/order");
+
+
+
 app.use("/api", require("./src/routes/adminroute"));
 
 
@@ -33,6 +37,9 @@ app.use("/api", require("./src/routes/adminroute"));
 app.use("/api", userRoutes);
 app.use("/api", vendorRoutes);
 app.use("/api", eventRoutes);
+app.use("/api", orderRoutes);
+
+
 app.use("/api/tickets", require("./src/routes/ticketroute"));
 app.use("/api/payments", require("./src/routes/paymentroute"));
 app.use("/api/categories", require("./src/routes/categoryroute"));
