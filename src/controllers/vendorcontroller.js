@@ -118,17 +118,19 @@ exports.login = async (req, res) => {
    GET VENDOR PROFILE
 ====================== */
 exports.getProfile = async (req, res) => {
-  const vendorId = req.user; // 👈 SAME as admin
+  const vendorId = req.user;   // ✅ correct (already id)
 
   try {
-
     const vendor = await Vendor.findById(vendorId).select("-password");
+
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
     }
 
     res.status(200).json(vendor);
+
   } catch (error) {
+    console.error("GET PROFILE ERROR:", error);
     res.status(500).json({ message: "Failed to fetch vendor profile" });
   }
 };

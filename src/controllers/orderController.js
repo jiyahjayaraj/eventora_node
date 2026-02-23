@@ -101,6 +101,9 @@ exports.getOrdersByUser = async (req, res) => {
 /* ===========================
    GET ORDERS BY VENDOR
 =========================== */
+/* ===========================
+   GET ORDERS BY VENDOR
+=========================== */
 exports.getOrdersByVendor = async (req, res) => {
   try {
     const vendorId = req.user;
@@ -109,15 +112,14 @@ exports.getOrdersByVendor = async (req, res) => {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const orders = await Order.find({ vendorId })
-      .populate("eventId")
-      .populate("userId")
-      .sort({ createdAt: -1 });
+    console.log(vendorId);
 
-    res.status(200).json({
-      message: "Vendor orders fetched successfully",
-      orders
-    });
+    let orders = await Order.find({ vendorId: vendorId })
+      .populate("userId", "name")      // ✅ show customer name
+      .populate("eventId", "title")    // ✅ show event title
+      .sort({ createdAt: -1 });        // optional but good
+
+    res.status(200).json(orders);
 
   } catch (error) {
     console.error("GET VENDOR ORDERS ERROR:", error);
