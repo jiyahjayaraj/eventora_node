@@ -9,7 +9,7 @@ router.get("/events",eventController.getAllEvents);
 router.get("/events/vendor/:id", eventController.getEvents);
 router.get("/events/:id",eventController.getEventById)
 router.post(
-  "/events",
+  "/events/vendor",
   vendorauth,
   upload.single("bannerImage"),
   eventController.addEvent
