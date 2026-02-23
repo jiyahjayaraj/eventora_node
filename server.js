@@ -13,7 +13,7 @@ require("./src/config/db"); // adjust if db.js is elsewhere
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin:"http://localhost:3000",
+  origin:["http://localhost:3000","http://localhost:3001"],
   credentials:true
 }))
 app.use(express.urlencoded({extended: true}))
@@ -26,8 +26,8 @@ const userRoutes = require("./src/routes/userroute");
 const vendorRoutes = require("./src/routes/venderroute");
 const eventRoutes = require("./src/routes/eventrouter");
 const orderRoutes = require("./src/routes/order");
-
-
+const revenueRoutes = require('./src/routes/revenueRoutes');
+const subscriptionRoutes = require("./src/routes/subscriptionRoute")
 
 app.use("/api", require("./src/routes/adminroute"));
 
@@ -38,9 +38,9 @@ app.use("/api", userRoutes);
 app.use("/api", vendorRoutes);
 app.use("/api", eventRoutes);
 app.use("/api", orderRoutes);
-
-
-app.use("/api/tickets", require("./src/routes/ticketroute"));
+app.use('/api', revenueRoutes);
+app.use('/api',subscriptionRoutes)
+app.use("/api", require("./src/routes/ticketroute"));
 app.use("/api/payments", require("./src/routes/paymentroute"));
 app.use("/api/categories", require("./src/routes/categoryroute"));
 app.use("/api/recommendations", require("./src/routes/recommendationroute"));
