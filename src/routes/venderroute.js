@@ -10,6 +10,6 @@ router.post("/vendors/login", vendorController.login);
 router.get("/vendor_dashboard", vendorauth,vendorController.getProfile);
 
 // Get all events created by this vendor
-router.get("/events", vendorauth,vendorController.getMyEvents);
+
 
 module.exports = router;

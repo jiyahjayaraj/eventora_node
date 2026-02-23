@@ -1,7 +1,12 @@
-    exports.getSubscription = async (req, res) => {
+const Subscription = require("../models/subscriptionModel");
+
+// 🔹 GET SUBSCRIPTION
+exports.getSubscription = async (req, res) => {
   try {
+    const vendorId = req.user.id || req.user._id;
+
     const subscription = await Subscription.findOne({
-      vendor: req.user
+      vendor: vendorId
     });
 
     res.status(200).json({
@@ -9,22 +14,43 @@
       data: subscription
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
+
+// 🔹 UPDATE / CREATE SUBSCRIPTION
 exports.updateSubscription = async (req, res) => {
   try {
-    const { plan, price } = req.body;
+    const vendorId = req.user.id || req.user._id;
+    const { plan, price, renewalDate } = req.body;
+
+    if (!plan) {
+      return res.status(400).json({
+        success: false,
+        message: "Plan is required"
+      });
+    }
+
+    const finalRenewalDate = renewalDate
+      ? new Date(renewalDate)
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     const updated = await Subscription.findOneAndUpdate(
-      { vendor: req.user },
+      { vendor: vendorId },
       {
+        vendor: vendorId,
         plan,
         price,
-        renewalDate: new Date(Date.now() + 30*24*60*60*1000),
+        renewalDate: finalRenewalDate,
         status: "active"
       },
-      { new: true }
+      {
+        new: true,
+        upsert: true
+      }
     );
 
     res.status(200).json({
@@ -32,13 +58,21 @@ exports.updateSubscription = async (req, res) => {
       data: updated
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
+
+// 🔹 CANCEL SUBSCRIPTION
 exports.cancelSubscription = async (req, res) => {
   try {
+    const vendorId = req.user.id || req.user._id;
+
     const updated = await Subscription.findOneAndUpdate(
-      { vendor: req.user },
+      { vendor: vendorId },
       { status: "cancelled" },
       { new: true }
     );
@@ -48,6 +82,9 @@ exports.cancelSubscription = async (req, res) => {
       data: updated
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
