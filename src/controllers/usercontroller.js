@@ -47,11 +47,12 @@ exports.registerUser = async (req, res) => {
 ====================== */
 
 exports.login = async (req, res) => {
-  console.log(req.body);
-  
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -63,18 +64,34 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign(
+    // ✅ Create JWT (same structure as vendor)
+    const user_token = jwt.sign(
       { id: user._id, role: "user" },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-res.cookie("token",token)
-    res.status(200).json({
-      message: "Login successful",
-      token
+
+    // ✅ Set cookie (same options as vendor)
+    res.cookie("token", user_token, {
+      httpOnly: true,
+      secure: false, // true in production (HTTPS)
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000
     });
+
+    // ✅ Response
+    res.status(200).json({
+      message: "User login successful",
+      user_token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
+    console.error("USER LOGIN ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -38,30 +38,42 @@
   /* ======================
     UPDATE EVENT
   ====================== */
-  exports.updateEvent = async (req, res) => {
-    try {
-      const event = await Event.findById(req.params.id);
+ exports.updateEvent = async (req, res) => {
 
-      if (!event)
-        return res.status(404).json({ message: "Event not found" });
+  console.log("UPDATE HIT");   // 👈 ADD THIS
+  console.log(req.body);       // 👈 ADD THIS
+  console.log(req.file);   
+  try {
+    const event = await Event.findById(req.params.id);
 
-      if (event.vendorId.toString() !== req.user)
-        return res.status(403).json({ message: "Unauthorized access" });
+    if (!event)
+      return res.status(404).json({ message: "Event not found" });
 
-      Object.assign(event, req.body);
+    if (event.vendorId.toString() !== req.user)
+      return res.status(403).json({ message: "Unauthorized access" });
 
-      await event.save();
-      res.json({
-        message: "Event updated successfully",
-        event
-      });
-    } catch (error) {
-      res.status(500).json({
-        message: "Event update failed",
-        error: error.message
-      });
+    // Update text fields
+    Object.assign(event, req.body);
+
+    // Update image if uploaded
+    if (req.file) {
+      event.bannerImage = `/uploads/${req.file.filename}`;
     }
-  };
+
+    await event.save();
+
+    res.json({
+      message: "Event updated successfully",
+      event
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Event update failed",
+      error: error.message
+    });
+  }
+};
 
   /* ======================
     DELETE EVENT
@@ -160,3 +172,87 @@ exports.getEventById = async (req, res) => {
   }
 };
 
+exports.addfeedback = async (req, res) => {
+  try {
+    const { comment, rating } = req.body;
+
+    // rating is required
+    if (rating === undefined) {
+      return res.status(400).json({ message: "Rating is required" });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    event.feedbacks.push({
+      userId: req.user,   // from userAuth middleware
+      comment,            // optional
+      rating
+    });
+
+    await event.save();
+
+    res.status(201).json({
+      message: "Feedback submitted successfully",
+      event
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to submit feedback",
+      error: error.message
+    });
+  }
+};
+
+exports.getVendorFeedbacks = async (req, res) => {
+  try {
+    const vendorId = req.user; // from vendorauth middleware
+
+    // Get vendor events with feedback
+    const events = await Event.find({ vendorId })
+      .select("title feedbacks bannerImage")
+      .populate("feedbacks.userId", "name email");
+
+    // Flatten feedbacks
+    const feedbacks = events.flatMap(event =>
+      event.feedbacks.map(fb => ({
+        eventId: event._id,
+        eventTitle: event.title,
+        bannerImage: event.bannerImage,
+        user: fb.userId,
+        rating: fb.rating,
+        comment: fb.comment,
+        createdAt: fb.createdAt
+      }))
+    );
+
+    // Dashboard stats
+    const totalFeedback = feedbacks.length;
+    const averageRating =
+      totalFeedback > 0
+        ? (
+            feedbacks.reduce((sum, f) => sum + f.rating, 0) / totalFeedback
+          ).toFixed(1)
+        : 0;
+
+    res.status(200).json({
+      message: "Vendor feedback fetched",
+      totalFeedback,
+      averageRating,
+      feedbacks
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to fetch feedback",
+      error: error.message
+    });
+  }
+};

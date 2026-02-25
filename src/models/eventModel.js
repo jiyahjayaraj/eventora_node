@@ -10,7 +10,7 @@ const eventSchema = new mongoose.Schema(
     eventType: {
       type: String,
       enum: ["Wedding", "Birthday", "Corporate", "Tech", "Music"],
-        // required: true
+      // required: true
     },
 
     eventDate: {
@@ -19,7 +19,7 @@ const eventSchema = new mongoose.Schema(
     },
     // Event model
     bannerImage: {
-      type:String
+      type: String
     },
 
 
@@ -53,8 +53,30 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
       required: true
-    }
+    },
+
+    feedbacks: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User"
+        },
+        comment: {
+          type: String
+        },
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ]
   },
+
   { timestamps: true }
 );
 

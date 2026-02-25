@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-
+const {addfeedback} = require("../controllers/eventcontroller")
+const {getVendorFeedbacks} = require("../controllers/eventcontroller")
 const eventController = require("../controllers/eventcontroller");
 const { vendorauth } = require("../middleware/auth");
 const upload = require("../middleware/upload");
@@ -18,7 +19,7 @@ router.post(
 router.put(
   "/events/:id",
   vendorauth,
-  upload.single("photo"),
+  upload.single("bannerImage"),
   eventController.updateEvent
 );
 
@@ -27,5 +28,10 @@ router.delete(
   vendorauth,
   eventController.deleteEvent
 );
-
+router.post("/events/:id/feedback", addfeedback);
+router.get(
+  "/vendor/feedbacks",
+  vendorauth,
+  getVendorFeedbacks
+);
 module.exports = router;
