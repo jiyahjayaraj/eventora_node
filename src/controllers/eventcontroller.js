@@ -93,7 +93,7 @@
 
   exports.getEvents = async (req, res) => {
     try {
-      const { id } = req.params; // or req.user.id
+      const { id } = req.params; // or req.user.id-
 
       if (!id) {
         return res.status(400).json({ message: "Vendor ID missing" });
