@@ -6,57 +6,44 @@ const User = require("../models/userModel")
    CREATE ORDER (User Only)
 =========================== */
 exports.createOrder = async (req, res) => {
-    const userId = req.user; // 👈 SAME as admin
-  
-    try {
-   if (!userId) {
-        return res.status(404).json({ message: "not authenticated" });
-      }
-      const user = await User.findById(userId).select("-password");
-      if (!user) {
-        return res.status(404).json({ message: "user not found" });
-      }
-  
-    
-  
+  const userId = req.user;
 
-    const { eventId, quantity } = req.body;
+  try {
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-    if (!eventId || !quantity) {
+    const { eventId, quantity, totalAmount } = req.body;
+
+    if (!eventId || !quantity || !totalAmount) {
       return res.status(400).json({
-        message: "Event ID and quantity required"
+        message: "Event ID, quantity and total amount required"
       });
     }
 
-    // 3️⃣ Check event exists
     const event = await Event.findById(eventId);
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found"
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
-    // 4️⃣ Check ticket availability
     if (event.availableTickets < quantity) {
       return res.status(400).json({
         message: "Not enough tickets available"
       });
     }
 
-    // 5️⃣ Create order safely
     const order = new Order({
-      userId ,         // from JWT
+      userId,
       eventId: event._id,
-      vendorId: event.vendorId,    // from event
+      vendorId: event.vendorId,
       quantity,
-      totalAmount: event.price * quantity,
+      totalAmount,
       paymentStatus: "pending"
     });
 
     await order.save();
 
-    // 6️⃣ Reduce tickets
     event.availableTickets -= quantity;
     await event.save();
 
@@ -67,11 +54,9 @@ exports.createOrder = async (req, res) => {
 
   } catch (error) {
     console.error("ORDER ERROR:", error);
-    res.status(500).json({
-      message: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
-};
+};    
 /* ===========================
    GET ORDERS BY USER
 =========================== */
