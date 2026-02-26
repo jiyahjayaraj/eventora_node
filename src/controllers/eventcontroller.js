@@ -222,6 +222,7 @@ exports.getVendorFeedbacks = async (req, res) => {
     // Flatten feedbacks
     const feedbacks = events.flatMap(event =>
       event.feedbacks.map(fb => ({
+        _id: fb._id,  
         eventId: event._id,
         eventTitle: event.title,
         bannerImage: event.bannerImage,
@@ -252,6 +253,39 @@ exports.getVendorFeedbacks = async (req, res) => {
     console.error(error);
     res.status(500).json({
       message: "Failed to fetch feedback",
+      error: error.message
+    });
+  }
+};
+/* ======================
+   DELETE FEEDBACK
+====================== */
+exports.deleteVendorFeedback = async (req, res) => {
+  try {
+    const vendorId = req.user;
+    const { feedbackId } = req.params;
+
+    // Find event that contains this feedback
+    const event = await Event.findOneAndUpdate(
+      { vendorId, "feedbacks._id": feedbackId },
+      { $pull: { feedbacks: { _id: feedbackId } } },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({
+        message: "Feedback not found or unauthorized"
+      });
+    }
+
+    res.status(200).json({
+      message: "Feedback deleted successfully"
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Delete failed",
       error: error.message
     });
   }

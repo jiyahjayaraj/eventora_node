@@ -34,4 +34,9 @@ router.get(
   vendorauth,
   getVendorFeedbacks
 );
+router.delete(
+  "/vendor/feedback/:feedbackId",
+  vendorauth,
+  eventController.deleteVendorFeedback
+);
 module.exports = router;
