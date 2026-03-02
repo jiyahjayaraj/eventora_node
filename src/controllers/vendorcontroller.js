@@ -4,62 +4,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
-/* ======================
-   VENDOR REGISTER
-====================== */
-exports.registerVendor = async (req, res) => {
-  console.log(req.body);
-  
-  try {
-    const {
-      vendorName,
-      vendorEmail,
-      vendorMobile,
-      password,
-      address,
-      subscriptionType,
-      companyName
-    } = req.body;
-
-    if (
-      !vendorName ||
-      !vendorEmail ||
-      !vendorMobile ||
-      !password ||
-      !address ||
-      !subscriptionType ||
-      !companyName
-    ) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const existingVendor = await Vendor.findOne({ vendorEmail });
-    if (existingVendor) {
-      return res.status(409).json({ message: "Vendor already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await Vendor.create({
-      vendorId: `VEN-${Date.now()}`, // ✅ auto-generate
-      vendorName,
-      vendorEmail,
-      vendorMobile,
-      address,
-      companyName,
-      password: hashedPassword,
-      subscriptionType
-    });
-
-    res.status(201).json({
-      message: "Vendor registered successfully. Waiting for admin approval"
-    });
-
-  } catch (error) {
-    console.error("REGISTER VENDOR ERROR 👉", error);
-    res.status(500).json({ message: "Vendor registration failed" });
-  }
-};
 
 /* ======================
    LOGIN
@@ -88,7 +32,7 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    
+
     res.cookie("token", vendor_token, {
       httpOnly: true,
       secure: false, // true only in production https
@@ -102,7 +46,13 @@ exports.login = async (req, res) => {
       vendor: {
         id: vendor._id,
         vendorName: vendor.vendorName,
-        vendorEmail: vendor.vendorEmail
+        vendorEmail: vendor.vendorEmail,
+        vendorMobile: vendor.vendorMobile,
+        companyName: vendor.companyName,
+        companyAddress: vendor.companyAddress,
+        city: vendor.city,
+        state: vendor.state,
+        pincode: vendor.pincode
       }
     });
 
@@ -135,7 +85,65 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+/* ======================
+   UPDATE VENDOR PROFILE
+====================== */
+exports.updateProfile = async (req, res) => {
 
+  const vendorId = req.user; // same as getProfile
+
+  try {
+
+    const {
+      vendorMobile,
+      companyName,
+      companyAddress,
+      city,
+      state,
+      pincode
+    } = req.body;
+
+    const updatedVendor = await Vendor.findByIdAndUpdate(
+
+      vendorId,
+
+      {
+        vendorMobile,
+        companyName,
+        companyAddress,
+        city,
+        state,
+        pincode,
+        profileCompleted: true
+      },
+
+      { new: true }
+
+    ).select("-password");
+
+
+    res.status(200).json({
+
+      message: "Profile updated successfully",
+
+      vendor: updatedVendor
+
+    });
+
+
+  } catch (error) {
+
+    console.error("UPDATE PROFILE ERROR:", error);
+
+    res.status(500).json({
+
+      message: "Failed to update profile"
+
+    });
+
+  }
+
+};
 /* ======================
    GET VENDOR EVENTS
 ====================== */

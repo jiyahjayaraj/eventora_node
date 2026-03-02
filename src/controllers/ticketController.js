@@ -13,10 +13,6 @@ exports.createTicketType = async (req, res) => {
   }
 };
 
-/**
- * Get all ticket types for a specific event
- * (Ticket Management table)
- */
 exports.getEventTicketTypes = async (req, res) => {
   try {
     const tickets = await TicketType.find({
@@ -58,6 +54,33 @@ exports.updateTicketStatus = async (req, res) => {
     );
 
     res.json(ticket);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Delete ticket type
+ * (Delete button)
+ */
+exports.deleteTicketType = async (req, res) => {
+  try {
+    const ticket = await TicketType.findById(req.params.ticketTypeId);
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket type not found" });
+    }
+
+    // 🔒 Optional safety: prevent delete if tickets sold
+    if (ticket.ticketsSold > 0) {
+      return res
+        .status(400)
+        .json({ message: "Cannot delete ticket type with sold tickets" });
+    }
+
+    await TicketType.findByIdAndDelete(req.params.ticketTypeId);
+
+    res.json({ message: "Ticket type deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -8,9 +8,9 @@ const eventSchema = new mongoose.Schema(
     },
 
     eventType: {
-      type: String,
-      enum: ["Wedding", "Birthday", "Corporate", "Tech", "Music"],
-      // required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EventType",
+      required: true
     },
 
     eventDate: {
