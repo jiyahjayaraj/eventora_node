@@ -46,18 +46,20 @@ exports.createOrder = async (req, res) => {
 
     await order.save();
 
-    event.availableTickets -= quantity;
-    await event.save();
+   await Event.findByIdAndUpdate(
+  eventId,
+  { $inc: { availableTickets: -quantity } }
+);
 
     res.status(201).json({
       message: "Order created successfully",
       order
     });
 
-  } catch (error) {
-    console.error("CREATE ORDER ERROR:", error);
-    res.status(500).json({ message: "Server error while creating order" });
-  }
+  }catch (error) {
+  console.error("FULL ERROR:", error);
+  return res.status(500).json({ message: error.message });
+}
 };
 
 /* ===========================
