@@ -1,19 +1,21 @@
 const Order = require("../models/order");
 const Event = require("../models/eventModel");
-const User = require("../models/userModel")
 
 /* ===========================
    CREATE ORDER (User Only)
 =========================== */
 exports.createOrder = async (req, res) => {
-  const userId = req.user;
-
   try {
-    if (!userId) {
+    if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const { eventId, quantity, totalAmount } = req.body;
+    const userId = req.user; // ✅ correct for your middleware
+
+    let { eventId, quantity, totalAmount } = req.body;
+
+    quantity = Number(quantity);
+    totalAmount = Number(totalAmount);
 
     if (!eventId || !quantity || !totalAmount) {
       return res.status(400).json({
@@ -22,7 +24,6 @@ exports.createOrder = async (req, res) => {
     }
 
     const event = await Event.findById(eventId);
-
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
@@ -39,7 +40,8 @@ exports.createOrder = async (req, res) => {
       vendorId: event.vendorId,
       quantity,
       totalAmount,
-      paymentStatus: "pending"
+      paymentStatus: "pending",
+      orderStatus: "Pending"
     });
 
     await order.save();
@@ -53,10 +55,11 @@ exports.createOrder = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("ORDER ERROR:", error);
-    res.status(500).json({ message: error.message });
+    console.error("CREATE ORDER ERROR:", error);
+    res.status(500).json({ message: "Server error while creating order" });
   }
-};    
+};
+
 /* ===========================
    GET ORDERS BY USER
 =========================== */
@@ -80,12 +83,10 @@ exports.getOrdersByUser = async (req, res) => {
 
   } catch (error) {
     console.error("GET USER ORDERS ERROR:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error while fetching user orders" });
   }
 };
-/* ===========================
-   GET ORDERS BY VENDOR
-=========================== */
+
 /* ===========================
    GET ORDERS BY VENDOR
 =========================== */
@@ -97,17 +98,18 @@ exports.getOrdersByVendor = async (req, res) => {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    console.log(vendorId);
+    const orders = await Order.find({ vendorId })
+      .populate("userId", "name email")
+      .populate("eventId", "eventName eventDate")
+      .sort({ createdAt: -1 });
 
-    let orders = await Order.find({ vendorId: vendorId })
-      .populate("userId", "name")      // ✅ show customer name
-      .populate("eventId", "title")    // ✅ show event title
-      .sort({ createdAt: -1 });        // optional but good
-
-    res.status(200).json(orders);
+    res.status(200).json({
+      message: "Vendor orders fetched successfully",
+      orders
+    });
 
   } catch (error) {
     console.error("GET VENDOR ORDERS ERROR:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error while fetching vendor orders" });
   }
 };
