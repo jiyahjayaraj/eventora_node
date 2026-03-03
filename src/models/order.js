@@ -9,7 +9,7 @@
     vendorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true
+      // required: true
     },
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
