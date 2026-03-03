@@ -1,36 +1,62 @@
   /* ======================
     create EVENT
   ====================== */
+const Event = require("../models/eventModel");
 
-  const Event = require("../models/eventModel");
-  exports.addEvent = async (req, res) => {
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
+exports.addEvent = async (req, res) => {
+  console.log("Body:", req.body);
+  console.log("File:", req.file);
 
-    try {
+  try {
 
-      // If image uploaded
-      const photo = req.file
-        ? `/uploads/${req.file.filename}`
-        : null;
+    const photo = req.file
+      ? `/uploads/${req.file.filename}`
+      : null;
 
-      const event = await Event.create({
-        ...req.body,
-        bannerImage  : photo// 👈 save photo path in DB
-      });
+    const event = await Event.create({
 
-      res.status(201).json({
-        message: "Event created successfully",
-        event
-      });
+      eventName: req.body.eventName,
 
-    } catch (error) {
-      res.status(500).json({
-        message: "Event creation failed",
-        error: error.message
-      });
-    }
-  };
+      eventType: req.body.eventType, // ObjectId
+
+      description: req.body.description,
+
+      city: req.body.city,
+
+      eventLocation: req.body.eventLocation,
+
+      eventDate: req.body.eventDate,
+
+      startTime: req.body.startTime,
+
+      endTime: req.body.endTime,
+
+      price: Number(req.body.price) || 0,
+
+      totalTickets: Number(req.body.totalTickets) || 0,
+
+      earlyPrice: Number(req.body.earlyPrice) || 0,
+
+      earlyDeadline: req.body.earlyDeadline || null,
+
+      vendorId: req.body.vendorId,
+
+      bannerImage: photo
+
+    });
+
+    res.status(201).json({
+      message: "Event created successfully",
+      event
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Event creation failed",
+      error: error.message
+    });
+  }
+};
 
 
 
@@ -135,7 +161,7 @@
     console.log("aa");
     
   try {
-    const events = await Event.find();
+    const events = await Event.find().populate("eventType", "name");
     console.log(events);
     
     return res.status(200).json({
@@ -222,6 +248,7 @@ exports.getVendorFeedbacks = async (req, res) => {
     // Flatten feedbacks
     const feedbacks = events.flatMap(event =>
       event.feedbacks.map(fb => ({
+        _id: fb._id,  
         eventId: event._id,
         eventTitle: event.title,
         bannerImage: event.bannerImage,
@@ -252,6 +279,39 @@ exports.getVendorFeedbacks = async (req, res) => {
     console.error(error);
     res.status(500).json({
       message: "Failed to fetch feedback",
+      error: error.message
+    });
+  }
+};
+/* ======================
+   DELETE FEEDBACK
+====================== */
+exports.deleteVendorFeedback = async (req, res) => {
+  try {
+    const vendorId = req.user;
+    const { feedbackId } = req.params;
+
+    // Find event that contains this feedback
+    const event = await Event.findOneAndUpdate(
+      { vendorId, "feedbacks._id": feedbackId },
+      { $pull: { feedbacks: { _id: feedbackId } } },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({
+        message: "Feedback not found or unauthorized"
+      });
+    }
+
+    res.status(200).json({
+      message: "Feedback deleted successfully"
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Delete failed",
       error: error.message
     });
   }
