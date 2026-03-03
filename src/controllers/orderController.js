@@ -5,19 +5,15 @@ const Event = require("../models/eventModel");
    CREATE ORDER (User Only)
 =========================== */
 exports.createOrder = async (req, res) => {
-  console.log("🔥 CREATE ORDER API HIT");
-console.log("User:", req.user);
-console.log("Body:", req.body);
   try {
-    const userId = req.user;
-
-    if (!userId) {
+    if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
+    const userId = req.user; // ✅ correct for your middleware
+
     let { eventId, quantity, totalAmount } = req.body;
 
-    // 🔥 Convert to numbers (very important)
     quantity = Number(quantity);
     totalAmount = Number(totalAmount);
 
@@ -27,14 +23,7 @@ console.log("Body:", req.body);
       });
     }
 
-    if (quantity <= 0) {
-      return res.status(400).json({
-        message: "Quantity must be greater than 0"
-      });
-    }
-
     const event = await Event.findById(eventId);
-
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
@@ -57,7 +46,6 @@ console.log("Body:", req.body);
 
     await order.save();
 
-    // 🔥 Reduce available tickets safely
     event.availableTickets -= quantity;
     await event.save();
 
