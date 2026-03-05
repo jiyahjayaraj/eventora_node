@@ -1,18 +1,22 @@
 const Subscription = require("../models/subscriptionModel");
-
-// 🔹 GET SUBSCRIPTION
+const PLANS = require("../config/subscriptionPlans");
+/*
+================================================
+GET MY SUBSCRIPTION
+Vendor only
+================================================
+*/
 exports.getSubscription = async (req, res) => {
   try {
-    const vendorId = req.user.id || req.user._id;
-
     const subscription = await Subscription.findOne({
-      vendor: vendorId
+      vendor: req.user
     });
 
     res.status(200).json({
       success: true,
       data: subscription
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -20,10 +24,18 @@ exports.getSubscription = async (req, res) => {
     });
   }
 };
-exports.updateSubscription = async (req, res) => {
+
+
+/*
+================================================
+UPGRADE / CHANGE PLAN (ChatGPT-style)
+Creates if not exists
+================================================
+*/
+exports.upgradeSubscription = async (req, res) => {
   try {
-    const vendorId = req.user.id || req.user._id;
-    const { plan, renewalDate } = req.body;
+    const vendorId = req.user;
+    const { plan } = req.body;
 
     if (!plan) {
       return res.status(400).json({
@@ -32,33 +44,28 @@ exports.updateSubscription = async (req, res) => {
       });
     }
 
-    // ✅ Backend price source of truth
-    const PLAN_PRICES = {
-      basic: 0,
-      professional: 2999,
-      enterprise: 7999
-    };
+    const planConfig = PLANS[plan];
 
-    const price = PLAN_PRICES[plan];
-
-    if (price === undefined) {
+    if (!planConfig) {
       return res.status(400).json({
         success: false,
         message: "Invalid plan"
       });
     }
 
-    const finalRenewalDate = renewalDate
-      ? new Date(renewalDate)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const { price, days } = planConfig;
 
-    const updated = await Subscription.findOneAndUpdate(
+    const renewalDate = new Date(
+      Date.now() + days * 24 * 60 * 60 * 1000
+    );
+
+    const subscription = await Subscription.findOneAndUpdate(
       { vendor: vendorId },
       {
         vendor: vendorId,
         plan,
         price,
-        renewalDate: finalRenewalDate,
+        renewalDate,
         status: "active"
       },
       {
@@ -69,8 +76,9 @@ exports.updateSubscription = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: updated
+      data: subscription
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -79,13 +87,22 @@ exports.updateSubscription = async (req, res) => {
   }
 };
 
+
+/*
+================================================
+CANCEL SUBSCRIPTION
+================================================
+*/
 exports.cancelSubscription = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-
     const updated = await Subscription.findOneAndUpdate(
-      { vendor: vendorId, status: "active" },
-      { status: "cancelled" },
+      {
+        vendor: req.user,
+        status: "active"
+      },
+      {
+        status: "cancelled"
+      },
       { new: true }
     );
 
@@ -100,6 +117,7 @@ exports.cancelSubscription = async (req, res) => {
       success: true,
       data: updated
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,

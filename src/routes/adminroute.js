@@ -8,7 +8,8 @@ router.post("/register", adminCtrl.registerAdmin);
 router.post("/login", adminCtrl.loginAdmin);
 router.post("/eventtypes",vendorauth,adminCtrl.createEventType);
 router.get("/eventtypes", adminCtrl.getEventTypes);
-router.post("/createvendor",adminCtrl.createVendor)
+router.post("/createvendor",adminCtrl.createVendor);
+router.post("/subscription", vendorauth, adminCtrl.adminUpsertSubscription);
 // 🔐 Protected (ADMIN ONLY, uses cookies)
 router.get("/admin_dashboard",adminCtrl.getAdmins);
 

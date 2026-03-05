@@ -1,8 +1,10 @@
+const PLANS = require("../config/subscriptionPlans");
 const Admin = require("../models/adminModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const EventType = require("../models/eventType");
 const Vendor = require("../models/vendorModel");
+const Subscription = require("../models/subscriptionModel");
 
 /* ================= CREATE VENDOR ================= */
 
@@ -200,5 +202,59 @@ exports.getEventTypes = async (req, res) => {
       message: "Failed to fetch event types"
     });
 
+  }
+};
+
+/* ================= ADMIN CREATE / UPDATE SUBSCRIPTION ================= */
+exports.adminUpsertSubscription = async (req, res) => {
+  try {
+    const { vendorId, plan, status } = req.body;
+
+    if (!vendorId || !plan) {
+      return res.status(400).json({
+        message: "vendorId and plan required"
+      });
+    }
+
+    const planConfig = PLANS[plan];
+
+    if (!planConfig) {
+      return res.status(400).json({
+        message: "Invalid plan"
+      });
+    }
+
+    const { price, days } = planConfig;
+
+    const renewalDate = new Date(
+      Date.now() + days * 24 * 60 * 60 * 1000
+    );
+
+    const subscription = await Subscription.findOneAndUpdate(
+      { vendor: vendorId },
+      {
+        vendor: vendorId,
+        plan,
+        price,
+        renewalDate,
+        status: status || "active",
+        startDate: new Date()
+      },
+      {
+        new: true,
+        upsert: true
+      }
+    );
+
+    res.status(200).json({
+      message: "Subscription saved successfully",
+      data: subscription
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Subscription update failed"
+    });
   }
 };
