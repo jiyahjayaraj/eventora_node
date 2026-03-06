@@ -11,6 +11,6 @@ router.get("/eventtypes", adminCtrl.getEventTypes);
 router.post("/createvendor",adminCtrl.createVendor);
 router.post("/subscription", vendorauth, adminCtrl.adminUpsertSubscription);
 // 🔐 Protected (ADMIN ONLY, uses cookies)
-router.get("/admin_dashboard",adminCtrl.getAdmins);
+router.get("/admin_dashboard",vendorauth,adminCtrl.getProfile);
 
 module.exports = router;

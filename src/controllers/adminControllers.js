@@ -134,18 +134,26 @@ exports.loginAdmin = async (req, res) => {
 };
 
 /* ================= GET ALL ADMINS ================= */
-exports.getAdmins = async (req, res) => {
-   const admid = req.user;
-   
+exports.getProfile = async (req, res) => {
+  const adminId = req.user;   // assuming middleware stores admin id in req.user
+
   try {
-  console.log(admid);
-    const admin =await Admin.findById(admid).select("-password")
-    console.log(admin);
-    if(!admin) res.send("admin not found")
-  
-      res.status(200).json(admin)
+    const admin = await Admin.findById(adminId).select("-password");
+
+    if (!admin) {
+      return res.status(404).json({
+        message: "Admin not found"
+      });
+    }
+
+    res.status(200).json(admin);
+
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch admins" });
+    console.error("GET ADMIN PROFILE ERROR:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch admin profile"
+    });
   }
 };
 /* ================= CREATE EVENT TYPE ================= */
