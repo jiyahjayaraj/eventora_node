@@ -1,48 +1,67 @@
-  /* ======================
-    create EVENT
-  ====================== */
+
 const Event = require("../models/eventModel");
+const Subscription = require("../models/subscriptionModel");
+const PLANS = require("../config/subscriptionPlans");
 
 exports.addEvent = async (req, res) => {
   console.log("Body:", req.body);
   console.log("File:", req.file);
 
   try {
+    const vendorId = req.user ;
+    const subscription = await Subscription.findOne({
+      vendor: vendorId,
+      status: "active"
+    });
+
+    if (!subscription) {
+      return res.status(403).json({
+        message: "No active subscription found"
+      });
+    }
+
+    const planConfig = PLANS[subscription.plan];
+
+    if (!planConfig) {
+      return res.status(400).json({
+        message: "Invalid subscription plan"
+      });
+    }
+
+    const maxEvents = planConfig.maxEvents;
+
+    const eventCount = await Event.countDocuments({
+      vendorId
+    });
+
+    // -1 = unlimited
+    if (maxEvents !== -1 && eventCount >= maxEvents) {
+      return res.status(403).json({
+        message: `Event limit reached for ${subscription.plan} plan`
+      });
+    }
+    // =========================================
+
 
     const photo = req.file
       ? `/uploads/${req.file.filename}`
       : null;
 
     const event = await Event.create({
-
       eventName: req.body.eventName,
-
-      eventType: req.body.eventType, // ObjectId
-
+      eventType: req.body.eventType,
       description: req.body.description,
-
       city: req.body.city,
-
       eventLocation: req.body.eventLocation,
-
       eventDate: req.body.eventDate,
-
       startTime: req.body.startTime,
-
       endTime: req.body.endTime,
-
       price: Number(req.body.price) || 0,
-
       totalTickets: Number(req.body.totalTickets) || 0,
-
       earlyPrice: Number(req.body.earlyPrice) || 0,
-
       earlyDeadline: req.body.earlyDeadline || null,
-
-      vendorId: req.body.vendorId,
-
+      vendorId,
       bannerImage: photo
-
     });
 
     res.status(201).json({
@@ -57,9 +76,6 @@ exports.addEvent = async (req, res) => {
     });
   }
 };
-
-
-
 
   /* ======================
     UPDATE EVENT

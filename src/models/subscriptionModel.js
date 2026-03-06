@@ -5,21 +5,21 @@ const subscriptionSchema = new mongoose.Schema(
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true,
-      unique: true,              // ✅ CRITICAL
-      index: true
+      required: true
     },
 
     plan: {
       type: String,
       enum: ["basic", "professional", "enterprise"],
-      default: "basic"
+      default: "basic",
+      required: true
     },
 
     price: {
       type: Number,
-      required: true,            // ✅ enforce consistency
-      default: 0
+      min: 0,
+      default: 0,
+      required: true
     },
 
     status: {
@@ -35,26 +35,44 @@ const subscriptionSchema = new mongoose.Schema(
 
     renewalDate: {
       type: Date,
-      required: true             // ✅ prevents invalid UI state
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
-/**
- * 🔁 Auto-expire subscription if renewal date passed
- */
+
+/*
+  Only ONE subscription per vendor
+*/
+subscriptionSchema.index({ vendor: 1 }, { unique: true });
+
+
+/*
+  Auto-expire on save
+*/
 subscriptionSchema.pre("save", function (next) {
-  if (
-    this.renewalDate &&
-    this.renewalDate < new Date() &&
-    this.status === "active"
-  ) {
+  if (this.status === "active" && this.renewalDate < new Date()) {
     this.status = "expired";
   }
   next();
 });
+
+
+/*
+  Auto-expire on update (VERY IMPORTANT)
+*/
+subscriptionSchema.pre("findOneAndUpdate", function () {
+  const update = this.getUpdate();
+
+  if (
+    update.status === "active" &&
+    update.renewalDate &&
+    update.renewalDate < new Date()
+  ) {
+    update.status = "expired";
+  }
+});
+
 
 module.exports = mongoose.model("Subscription", subscriptionSchema);
