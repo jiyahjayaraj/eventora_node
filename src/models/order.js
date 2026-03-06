@@ -25,11 +25,11 @@
         type: Number,
         required: true
       },
-      paymentStatus: {
-        type: String,
-        enum: ["all status","pending", "paid", "failed"],
-        default: "pending"
-      },
+     paymentStatus: {
+  type: String,
+  enum: ["pending", "paid", "failed"],
+  default: "pending"
+},
       orderStatus: {
         type: String,
         enum: ["Pending", "Confirmed", "Cancelled"],
