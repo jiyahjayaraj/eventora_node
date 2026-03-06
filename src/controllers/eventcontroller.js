@@ -145,33 +145,38 @@ exports.addEvent = async (req, res) => {
   ====================== */
 
 
-  exports.getEvents = async (req, res) => {
-    try {
-      const { id } = req.params; // or req.user.id-
+exports.getEvents = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      if (!id) {
-        return res.status(400).json({ message: "Vendor ID missing" });
-      }
-
-
-      const events = await Event.find({
-        vendorId: id
-      })
-  console.log(events,id);
-
-      return res.status(200).json({
-        message: "Events fetched",
-        events
-      });
-
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        message: "Server error",
-        error: error.message
-      });
+    if (!id) {
+      return res.status(400).json({ message: "Vendor ID missing" });
     }
-  };
+
+    const events = await Event.find({ vendorId: id });
+
+    const formattedEvents = events.map(event => ({
+      ...event._doc,
+      eventDate: new Date(event.eventDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      })
+    }));
+
+    return res.status(200).json({
+      message: "Events fetched",
+      events: formattedEvents
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
 
   exports.getAllEvents = async (req, res) => {
     console.log("aa");

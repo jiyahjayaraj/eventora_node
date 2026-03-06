@@ -5,13 +5,13 @@ const path = require("path");
 
 const app = express();
 const cookieParser = require("cookie-parser");
-const passport = require("passport");   // ✅ ADD
+
 
 
 
 // DB connection (VERY IMPORTANT)
 require("./src/config/db"); // adjust if db.js is elsewhere
-require("./src/config/passport");  // ✅ ADD
+
 
 // Middleware
 app.use(express.json());
@@ -22,11 +22,9 @@ app.use(cors({
 }))
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser());
-app.use(passport.initialize());   // ✅ IMPORTANT
+
 
 app.use("/uploads", express.static(path.join(__dirname, "upload")));
-const authRoutes = require("./src/routes/authRoutes"); // ✅ ADD
-app.use("/api", authRoutes); // ✅ ADD
 
 // Routes (FIXED PATHS)
 // const authRoutes = require("./src/routes/authrouter");
