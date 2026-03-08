@@ -32,6 +32,9 @@ companyAddress:{
 city:{
   type: String,
 },
+events:{
+  type: String,
+},
 state:{
   type: String,
 },

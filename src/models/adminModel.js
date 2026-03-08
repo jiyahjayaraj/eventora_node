@@ -19,6 +19,12 @@ const adminSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  city:{
+    type:String,
+  },
+  events:{
+  type: String,
+},
   role: {
     type: String,
     default: "admin"
