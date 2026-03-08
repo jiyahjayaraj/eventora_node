@@ -8,7 +8,7 @@ exports.addEvent = async (req, res) => {
   console.log("File:", req.file);
 
   try {
-    const vendorId = req.user ;
+    const vendorId = req.user;
     const subscription = await Subscription.findOne({
       vendor: vendorId,
       status: "active"
@@ -77,27 +77,34 @@ exports.addEvent = async (req, res) => {
   }
 };
 
-  /* ======================
-    UPDATE EVENT
-  ====================== */
- exports.updateEvent = async (req, res) => {
-
-  console.log("UPDATE HIT");   // 👈 ADD THIS
-  console.log(req.body);       // 👈 ADD THIS
-  console.log(req.file);   
+/* ======================
+  UPDATE EVENT
+====================== */
+exports.updateEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
-    if (!event)
+    if (!event) {
       return res.status(404).json({ message: "Event not found" });
+    }
 
-    if (event.vendorId.toString() !== req.user)
+    if (event.vendorId.toString() !== req.user) {
       return res.status(403).json({ message: "Unauthorized access" });
+    }
 
-    // Update text fields
-    Object.assign(event, req.body);
+    event.eventName = req.body.eventName;
+    event.eventType = req.body.eventType;
+    event.description = req.body.description;
+    event.city = req.body.city;
+    event.eventLocation = req.body.eventLocation;
+    event.eventDate = req.body.eventDate;
+    event.startTime = req.body.startTime;
+    event.endTime = req.body.endTime;
+    event.price = Number(req.body.price) || 0;
+    event.totalTickets = Number(req.body.totalTickets) || 0;
+    event.earlyPrice = Number(req.body.earlyPrice) || 0;
+    event.earlyDeadline = req.body.earlyDeadline || null;
 
-    // Update image if uploaded
     if (req.file) {
       event.bannerImage = `/uploads/${req.file.filename}`;
     }
@@ -116,33 +123,32 @@ exports.addEvent = async (req, res) => {
     });
   }
 };
+/* ======================
+  DELETE EVENT
+====================== */
+exports.deleteEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
 
-  /* ======================
-    DELETE EVENT
-  ====================== */
-  exports.deleteEvent = async (req, res) => {
-    try {
-      const event = await Event.findById(req.params.id);
+    if (!event)
+      return res.status(404).json({ message: "Event not found" });
 
-      if (!event)
-        return res.status(404).json({ message: "Event not found" });
+    if (event.vendorId.toString() !== req.user)
+      return res.status(403).json({ message: "Unauthorized access" });
 
-      if (event.vendorId.toString() !== req.user)
-        return res.status(403).json({ message: "Unauthorized access" });
+    await event.deleteOne();
+    res.json({ message: "Event deleted successfully" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Event deletion failed",
+      error: error.message
+    });
+  }
+};
 
-      await event.deleteOne();
-      res.json({ message: "Event deleted successfully" });
-    } catch (error) {
-      res.status(500).json({
-        message: "Event deletion failed",
-        error: error.message
-      });
-    }
-  };
-
-  /* ======================
-    GET ALL EVENTS (PUBLIC)
-  ====================== */
+/* ======================
+  GET ALL EVENTS (PUBLIC)
+====================== */
 
 
 exports.getEvents = async (req, res) => {
@@ -178,13 +184,13 @@ exports.getEvents = async (req, res) => {
   }
 };
 
-  exports.getAllEvents = async (req, res) => {
-    console.log("aa");
-    
+exports.getAllEvents = async (req, res) => {
+  console.log("aa");
+
   try {
     const events = await Event.find().populate("eventType", "name");
     console.log(events);
-    
+
     return res.status(200).json({
       message: "All events fetched",
       events
@@ -269,7 +275,7 @@ exports.getVendorFeedbacks = async (req, res) => {
     // Flatten feedbacks
     const feedbacks = events.flatMap(event =>
       event.feedbacks.map(fb => ({
-        _id: fb._id,  
+        _id: fb._id,
         eventId: event._id,
         eventTitle: event.title,
         bannerImage: event.bannerImage,
@@ -285,8 +291,8 @@ exports.getVendorFeedbacks = async (req, res) => {
     const averageRating =
       totalFeedback > 0
         ? (
-            feedbacks.reduce((sum, f) => sum + f.rating, 0) / totalFeedback
-          ).toFixed(1)
+          feedbacks.reduce((sum, f) => sum + f.rating, 0) / totalFeedback
+        ).toFixed(1)
         : 0;
 
     res.status(200).json({

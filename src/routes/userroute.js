@@ -8,8 +8,6 @@
     router.post("/users/login", userController.loginUser);
     router.post("/users/logout", userController.logoutUser); // ✅ ADDED
 
-
-
     // Get logged-in user profile
     router.get("/profile",vendorauth, userController.getProfile);
 

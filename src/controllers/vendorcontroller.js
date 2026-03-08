@@ -90,59 +90,41 @@ exports.getProfile = async (req, res) => {
 ====================== */
 exports.updateProfile = async (req, res) => {
 
-  const vendorId = req.user; // same as getProfile
+ const vendorId = req.user;
 
-  try {
+ try {
 
-    const {
-      vendorMobile,
-      companyName,
-      companyAddress,
-      city,
-      state,
-      pincode
-    } = req.body;
+  const updateData = {
+   vendorMobile: req.body.vendorMobile,
+   companyName: req.body.companyName,
+   companyAddress: req.body.companyAddress,
+   city: req.body.city,
+   state: req.body.state,
+   pincode: req.body.pincode
+  };
 
-    const updatedVendor = await Vendor.findByIdAndUpdate(
-
-      vendorId,
-
-      {
-        vendorMobile,
-        companyName,
-        companyAddress,
-        city,
-        state,
-        pincode,
-        profileCompleted: true
-      },
-
-      { new: true }
-
-    ).select("-password");
-
-
-    res.status(200).json({
-
-      message: "Profile updated successfully",
-
-      vendor: updatedVendor
-
-    });
-
-
-  } catch (error) {
-
-    console.error("UPDATE PROFILE ERROR:", error);
-
-    res.status(500).json({
-
-      message: "Failed to update profile"
-
-    });
-
+  if (req.file) {
+   updateData.profileImage = req.file.filename;
   }
 
+  const updatedVendor = await Vendor.findByIdAndUpdate(
+   vendorId,
+   updateData,
+   { new: true }
+  ).select("-password");
+
+  res.status(200).json({
+   message: "Profile updated successfully",
+   vendor: updatedVendor
+  });
+
+ } catch (error) {
+  console.error("UPDATE PROFILE ERROR:", error);
+
+  res.status(500).json({
+   message: "Failed to update profile"
+  });
+ }
 };
 /* ======================
    GET VENDOR EVENTS
