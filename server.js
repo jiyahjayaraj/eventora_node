@@ -17,7 +17,7 @@ require("./src/config/db"); // adjust if db.js is elsewhere
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin:["http://localhost:3000","http://localhost:3001"],
+  origin:["http://localhost:3000","http://localhost:3001","http://localhost:3002"],
   credentials:true
 }))
 app.use(express.urlencoded({extended: true}))

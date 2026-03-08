@@ -3,6 +3,8 @@ const Event = require("../models/eventModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const nodemailer = require("nodemailer"); // ✅ ADD THIS
+require("dotenv").config(); // ✅ Added
 
 
 /* ======================
@@ -132,4 +134,68 @@ exports.updateProfile = async (req, res) => {
 exports.getMyEvents = async (req, res) => {
   const events = await Event.find({ vendorId: req.user.id });
   res.json(events);
+};
+
+/* ======================
+   SEND VENDOR APPLICATION MAIL (NEW)
+====================== */
+exports.sendVendorApplication = async (req, res) => {
+  try {
+    const { name, email, phone, organization, eventType } = req.body;
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Eventora Vendor Request" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: "New Vendor Application - Eventora",
+      html: `
+        <h2>New Vendor Application</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Organization:</strong> ${organization}</p>
+        <p><strong>Event Type:</strong> ${eventType}</p>
+      `,
+    });
+
+    res.status(200).json({ message: "Application sent successfully" });
+
+} catch (error) {
+  console.error("====== MAIL ERROR START ======");
+  console.error(error);
+  console.error("====== MAIL ERROR END ======");
+
+  res.status(500).json({
+    message: "Failed to send application",
+    error: error.message
+  });
+}
+};
+
+/* ================= GET ALL VENDORS ================= */
+
+exports.getAllVendors = async (req, res) => {
+  try {
+
+    const vendors = await Vendor.find();
+
+    res.status(200).json({
+      vendors
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Failed to fetch vendors"
+    });
+
+  }
 };

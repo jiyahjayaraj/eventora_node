@@ -14,12 +14,14 @@ exports.createVendor = async (req, res) => {
     const {
       vendorName,
       vendorEmail,
+      city,
       password,
     } = req.body;
 
     if (
       !vendorName ||
       !vendorEmail ||
+      !city||
       !password 
     ) {
       return res.status(400).json({
@@ -41,6 +43,7 @@ exports.createVendor = async (req, res) => {
 
       vendorName,
       vendorEmail,
+      city,
       password: hashedPassword,
     });
 

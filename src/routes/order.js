@@ -6,6 +6,7 @@ const {vendorauth} = require("../middleware/auth");
     router.post("/order",vendorauth , orderController.createOrder);
     router.get("/my-orders", vendorauth, orderController.getOrdersByUser);
     router.get("/vendor-orders", vendorauth, orderController.getOrdersByVendor);
+    router.get("/all-orders", vendorauth, orderController.getAllOrders);
 
 
 module.exports = router;

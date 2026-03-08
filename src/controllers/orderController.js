@@ -92,26 +92,77 @@ exports.getOrdersByUser = async (req, res) => {
 /* ===========================
    GET ORDERS BY VENDOR
 =========================== */
+/* ===========================
+   GET ORDERS BY VENDOR
+=========================== */
 exports.getOrdersByVendor = async (req, res) => {
   try {
-    const vendorId = req.user;
 
-    if (!vendorId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+    console.log("------ VENDOR ORDER DEBUG ------");
+
+    console.log("req.user:", req.user);
+
+    const vendorId = req.user?.id || req.user;
+
+    console.log("Vendor ID used for query:", vendorId);
 
     const orders = await Order.find({ vendorId })
       .populate("userId", "name email")
       .populate("eventId", "eventName eventDate")
       .sort({ createdAt: -1 });
 
+    console.log("Orders found:", orders);
+    console.log("Orders count:", orders.length);
+
+    console.log("------ END DEBUG ------");
+
     res.status(200).json({
-      message: "Vendor orders fetched successfully",
       orders
     });
 
   } catch (error) {
+
     console.error("GET VENDOR ORDERS ERROR:", error);
-    res.status(500).json({ message: "Server error while fetching vendor orders" });
+
+    res.status(500).json({
+      message: "Failed to fetch vendor orders"
+    });
+
+  }
+};
+/* ===========================
+   GET ALL ORDERS (ADMIN)
+=========================== */
+exports.getAllOrders = async (req, res) => {
+  try {
+
+const orders = await Order.find()
+  .populate({
+    path: "userId",
+    select: "name email"
+  })
+  .populate({
+    path: "vendorId",
+    select: "vendorName email"
+  })
+  .populate({
+    path: "eventId",
+    select: "eventName eventDate"
+  })
+  .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "All orders fetched successfully",
+      orders
+    });
+
+  } catch (error) {
+
+    console.error("GET ALL ORDERS ERROR:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch all orders"
+    });
+
   }
 };
