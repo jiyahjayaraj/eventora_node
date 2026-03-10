@@ -9,15 +9,15 @@ exports.addEvent = async (req, res) => {
 
   try {
     const vendorId = req.user;
-    const subscription = await Subscription.findOne({
+
+    let subscription = await Subscription.findOne({
       vendor: vendorId,
       status: "active"
     });
 
+    // If no subscription → treat as BASIC
     if (!subscription) {
-      return res.status(403).json({
-        message: "No active subscription found"
-      });
+      subscription = { plan: "basic" };
     }
 
     const planConfig = PLANS[subscription.plan];
