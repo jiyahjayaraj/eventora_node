@@ -6,11 +6,13 @@ const Event = require("../models/eventModel");
 =========================== */
 exports.createOrder = async (req, res) => {
   try {
+
     if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const userId = req.user; // ✅ correct for your middleware
+    // ✅ FIXED
+    const userId = req.user?.id || req.user;
 
     let { eventId, quantity, totalAmount } = req.body;
 
@@ -24,6 +26,7 @@ exports.createOrder = async (req, res) => {
     }
 
     const event = await Event.findById(eventId);
+
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
@@ -35,9 +38,9 @@ exports.createOrder = async (req, res) => {
     }
 
     const order = new Order({
-      userId,
+      userId: userId,         // ✅ correct
       eventId: event._id,
-      vendorId: event.vendorId,
+      vendorId: event.vendorId, // ✅ vendor from event
       quantity,
       totalAmount,
       paymentStatus: "pending",
@@ -46,22 +49,21 @@ exports.createOrder = async (req, res) => {
 
     await order.save();
 
-   await Event.findByIdAndUpdate(
-  eventId,
-  { $inc: { availableTickets: -quantity } }
-);
+    await Event.findByIdAndUpdate(
+      eventId,
+      { $inc: { availableTickets: -quantity } }
+    );
 
     res.status(201).json({
       message: "Order created successfully",
       order
     });
 
-  }catch (error) {
-  console.error("FULL ERROR:", error);
-  return res.status(500).json({ message: error.message });
-}
+  } catch (error) {
+    console.error("FULL ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
 };
-
 /* ===========================
    GET ORDERS BY USER
 =========================== */
@@ -136,33 +138,39 @@ exports.getOrdersByVendor = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
 
-const orders = await Order.find()
-  .populate({
-    path: "userId",
-    select: "name email"
-  })
-  .populate({
-    path: "vendorId",
-    select: "vendorName email"
-  })
-  .populate({
-    path: "eventId",
-    select: "eventName eventDate"
-  })
-  .sort({ createdAt: -1 });
+    const rawOrders = await Order.find();
+    console.log("RAW ORDERS FROM DB:", rawOrders);
+
+    const orders = await Order.find()
+      .populate({
+        path: "userId",
+        select: "name email"
+      })
+      .populate({
+        path: "vendorId",
+        select: "vendorName email"
+      })
+      .populate({
+        path: "eventId",
+        select: "eventName eventDate"
+      })
+      .sort({ createdAt: -1 });
+
+    console.log("===== ORDERS DEBUG =====");
+
+    orders.forEach((order) => {
+      console.log("Order ID:", order._id);
+      console.log("User:", order.userId);
+      console.log("Vendor:", order.vendorId);
+      console.log("Event:", order.eventId);
+      console.log("----------------------");
+    });
 
     res.status(200).json({
-      message: "All orders fetched successfully",
       orders
     });
 
   } catch (error) {
-
-    console.error("GET ALL ORDERS ERROR:", error);
-
-    res.status(500).json({
-      message: "Failed to fetch all orders"
-    });
-
+    console.error(error);
   }
 };
