@@ -49,7 +49,7 @@ app.use('/api', revenueRoutes);
 app.use('/api',subscriptionRoutes)
 app.use("/api", require("./src/routes/ticketroute"));
 app.use("/api/payments", require("./src/routes/paymentroute"));
-app.use("/api/categories", require("./src/routes/categoryroute"));
+app.use("/api", require("./src/routes/categoryroute"));
 app.use("/api/recommendations", require("./src/routes/recommendationroute"));
 
 
