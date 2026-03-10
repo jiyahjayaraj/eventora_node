@@ -92,42 +92,55 @@ exports.getProfile = async (req, res) => {
 ====================== */
 exports.updateProfile = async (req, res) => {
 
- const vendorId = req.user;
+  const vendorId = req.user;
 
- try {
+  try {
 
-  const updateData = {
-   vendorMobile: req.body.vendorMobile,
-   companyName: req.body.companyName,
-   companyAddress: req.body.companyAddress,
-   city: req.body.city,
-   state: req.body.state,
-   pincode: req.body.pincode
-  };
+    const updateData = {
+      vendorMobile: req.body.vendorMobile,
+      companyName: req.body.companyName,
+      companyAddress: req.body.companyAddress,
+      city: req.body.city,
+      state: req.body.state,
+      pincode: req.body.pincode
+    };
 
-  if (req.file) {
-   updateData.profileImage = req.file.filename;
+    // ✅ Handle password update
+    if (req.body.password && req.body.password.trim() !== "") {
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+      updateData.password = hashedPassword;
+    }
+
+    // ✅ Handle profile image
+    if (req.file) {
+      updateData.profileImage = req.file.filename;
+    }
+
+    const updatedVendor = await Vendor.findByIdAndUpdate(
+      vendorId,
+      updateData,
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      vendor: updatedVendor
+    });
+
+  } catch (error) {
+
+    console.error("UPDATE PROFILE ERROR:", error);
+
+    res.status(500).json({
+      message: "Failed to update profile"
+    });
+
   }
-
-  const updatedVendor = await Vendor.findByIdAndUpdate(
-   vendorId,
-   updateData,
-   { new: true }
-  ).select("-password");
-
-  res.status(200).json({
-   message: "Profile updated successfully",
-   vendor: updatedVendor
-  });
-
- } catch (error) {
-  console.error("UPDATE PROFILE ERROR:", error);
-
-  res.status(500).json({
-   message: "Failed to update profile"
-  });
- }
 };
+
 /* ======================
    GET VENDOR EVENTS
 ====================== */

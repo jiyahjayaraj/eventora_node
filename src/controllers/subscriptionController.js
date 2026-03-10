@@ -125,3 +125,25 @@ exports.cancelSubscription = async (req, res) => {
     });
   }
 };
+
+exports.getAllSubscriptions = async (req, res) => {
+  try {
+
+    const subscriptions = await Subscription
+      .find()
+      .populate("vendor", "vendorName vendorEmail");
+
+    res.status(200).json({
+      success: true,
+      data: subscriptions
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
