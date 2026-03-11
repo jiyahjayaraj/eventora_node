@@ -156,13 +156,14 @@ exports.sendVendorApplication = async (req, res) => {
   try {
     const { name, email, phone, organization, eventType } = req.body;
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     await transporter.sendMail({
@@ -181,16 +182,16 @@ exports.sendVendorApplication = async (req, res) => {
 
     res.status(200).json({ message: "Application sent successfully" });
 
-} catch (error) {
-  console.error("====== MAIL ERROR START ======");
-  console.error(error);
-  console.error("====== MAIL ERROR END ======");
+  } catch (error) {
+    console.error("====== MAIL ERROR START ======");
+    console.error(error);
+    console.error("====== MAIL ERROR END ======");
 
-  res.status(500).json({
-    message: "Failed to send application",
-    error: error.message
-  });
-}
+    res.status(500).json({
+      message: "Failed to send application",
+      error: error.message
+    });
+  }
 };
 
 /* ================= GET ALL VENDORS ================= */
