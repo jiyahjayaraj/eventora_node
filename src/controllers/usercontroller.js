@@ -6,35 +6,51 @@ require("dotenv").config(); // ✅ Added
 // REGISTER + AUTO LOGIN
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
 
-    // Check existing user
+    const {
+      name,
+      email,
+      password,
+      mobile,
+      city,
+      interests,
+      latitude,
+      longitude
+    } = req.body;
+
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message: "User already exists"
+      });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await User.create({
       name,
       email,
-      password: hashedPassword
+      mobile,
+      password: hashedPassword,
+      city,
+      interests,
+
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude]
+      }
     });
 
-    // ✅ Generate token using ENV secret
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,   // ✅ FIXED HERE
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,   // true only in production (HTTPS)
+      secure: false,
       sameSite: "lax"
     });
 

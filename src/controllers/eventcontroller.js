@@ -53,6 +53,12 @@ exports.addEvent = async (req, res) => {
       description: req.body.description,
       city: req.body.city,
       eventLocation: req.body.eventLocation,
+
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude]
+      },
+
       eventDate: req.body.eventDate,
       startTime: req.body.startTime,
       endTime: req.body.endTime,
