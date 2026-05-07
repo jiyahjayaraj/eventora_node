@@ -157,7 +157,7 @@ exports.loginAdmin = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.cookie("token", token, {
+    res.cookie("adminToken", token, {
       httpOnly: true,
       secure: false,
       maxAge: 24 * 60 * 60 * 1000

@@ -6,14 +6,16 @@ const {
   cancelSubscription,getAllSubscriptions
 } = require("../controllers/subscriptionController");
 
-const { vendorauth } = require("../middleware/auth");
 
-router.get("/subscription", vendorauth, getSubscription);
+const { vendorAuth,adminAuth } = require("../middleware/auth");
 
-router.get("/admin/subscription", vendorauth, getAllSubscriptions);
 
-router.put("/subscription/upgrade", vendorauth, upgradeSubscription);
+router.get("/subscription", vendorAuth, getSubscription);
 
-router.put("/subscription/cancel", vendorauth, cancelSubscription);
+router.get("/admin/subscription", adminAuth, getAllSubscriptions);
+
+router.put("/subscription/upgrade", vendorAuth, upgradeSubscription);
+
+router.put("/subscription/cancel", vendorAuth, cancelSubscription);
 
 module.exports = router;

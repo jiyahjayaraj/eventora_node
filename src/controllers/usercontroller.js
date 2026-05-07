@@ -54,7 +54,7 @@ exports.registerUser = async (req, res) => {
   { expiresIn: "7d" }
 );
 
-    res.cookie("token", token, {
+    res.cookie("userToken", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax"
@@ -94,7 +94,7 @@ exports.loginUser = async (req, res) => {
   { expiresIn: "7d" }
 );
 
-    res.cookie("token", token, {
+    res.cookie("userToken", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax"
@@ -127,7 +127,7 @@ const user = await User.findById(req.user.id).select("-password");
 // LOGOUT USER
 exports.logoutUser = async (req, res) => {
   try {
-    res.clearCookie("token", {
+    res.clearCookie("userToken", {
       httpOnly: true,
       secure: false,
       sameSite: "lax"
