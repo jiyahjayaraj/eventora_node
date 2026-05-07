@@ -59,18 +59,21 @@ exports.upgradeSubscription = async (req, res) => {
       Date.now() + days * 24 * 60 * 60 * 1000
     );
 
+    const mongoose = require("mongoose");
     const subscription = await Subscription.findOneAndUpdate(
-      { vendor: vendorId },
+      { vendor: new mongoose.Types.ObjectId(vendorId) },
       {
-        vendor: vendorId,
-        plan,
-        price,
-        renewalDate,
-        status: "active"
+        $set: {
+          plan,
+          price,
+          renewalDate,
+          status: "active"
+        }
       },
       {
         new: true,
-        upsert: true
+        upsert: true,
+        setDefaultsOnInsert: true
       }
     );
 

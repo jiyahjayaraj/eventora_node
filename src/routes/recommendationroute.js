@@ -6,6 +6,9 @@ const { vendorauth } = require("../middleware/auth");
 // AI generate
 router.get("/generate", vendorauth, recCtrl.generateRecommendations);
 
+// Community Insights
+router.get("/community-insights", vendorauth, recCtrl.getCommunityInsights);
+
 // Get stored recommendations
 router.get("/user/:userId", recCtrl.getUserRecommendations);
 

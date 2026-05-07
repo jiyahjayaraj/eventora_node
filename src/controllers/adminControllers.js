@@ -65,6 +65,40 @@ exports.createVendor = async (req, res) => {
   }
 
 };
+
+/* ================= UPDATE VENDOR ================= */
+
+exports.updateVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { vendorName, vendorEmail, city, status, password } = req.body;
+
+    const vendor = await Vendor.findById(id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (vendorName) vendor.vendorName = vendorName;
+    if (vendorEmail) vendor.vendorEmail = vendorEmail;
+    if (city) vendor.city = city;
+    if (status) vendor.status = status;
+
+    if (password) {
+      vendor.password = await bcrypt.hash(password, 10);
+    }
+
+    await vendor.save();
+
+    res.status(200).json({
+      message: "Vendor updated successfully",
+      vendor
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Vendor update failed" });
+  }
+};
 /* ================= REGISTER ADMIN ================= */
 exports.registerAdmin = async (req, res) => {
   try {
@@ -138,10 +172,13 @@ exports.loginAdmin = async (req, res) => {
 
 /* ================= GET ALL ADMINS ================= */
 exports.getProfile = async (req, res) => {
-  const adminId = req.user;   // assuming middleware stores admin id in req.user
+
+  const adminId = req.user.id;
 
   try {
-    const admin = await Admin.findById(adminId).select("-password");
+
+    const admin = await Admin.findById(adminId)
+      .select("-password");
 
     if (!admin) {
       return res.status(404).json({
@@ -152,12 +189,15 @@ exports.getProfile = async (req, res) => {
     res.status(200).json(admin);
 
   } catch (error) {
+
     console.error("GET ADMIN PROFILE ERROR:", error);
 
     res.status(500).json({
       message: "Failed to fetch admin profile"
     });
+
   }
+
 };
 /* ================= CREATE EVENT TYPE ================= */
 
@@ -241,19 +281,25 @@ exports.adminUpsertSubscription = async (req, res) => {
       Date.now() + days * 24 * 60 * 60 * 1000
     );
 
+    const mongoose = require("mongoose");
     const subscription = await Subscription.findOneAndUpdate(
-      { vendor: vendorId },
+      { vendor: new mongoose.Types.ObjectId(vendorId) },
       {
-        vendor: vendorId,
-        plan,
-        price,
-        renewalDate,
-        status: status || "active",
-        startDate: new Date()
+        $set: {
+          plan,
+          price,
+          renewalDate,
+          status: status || "active"
+        },
+        $setOnInsert: {
+          vendor: new mongoose.Types.ObjectId(vendorId),
+          startDate: new Date()
+        }
       },
       {
         new: true,
-        upsert: true
+        upsert: true,
+        setDefaultsOnInsert: true
       }
     );
 

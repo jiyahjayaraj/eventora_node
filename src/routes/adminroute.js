@@ -9,6 +9,7 @@ router.post("/login", adminCtrl.loginAdmin);
 router.post("/eventtypes",vendorauth,adminCtrl.createEventType);
 router.get("/eventtypes", adminCtrl.getEventTypes);
 router.post("/createvendor",adminCtrl.createVendor);
+router.put("/updatevendor/:id", adminCtrl.updateVendor);
 router.post("/subscription", vendorauth, adminCtrl.adminUpsertSubscription);
 // 🔐 Protected (ADMIN ONLY, uses cookies)
 router.get("/admin_dashboard",vendorauth,adminCtrl.getProfile);

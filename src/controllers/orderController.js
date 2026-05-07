@@ -91,6 +91,37 @@ exports.getOrdersByUser = async (req, res) => {
   }
 };
 
+
+// exports.getOrdersByUser = async (req, res) => {
+//   try {
+
+//     if (req.user.role !== "user") {
+//       return res.status(403).json({
+//         message: "Access denied"
+//       });
+//     }
+
+//     const userId = req.user.id;
+
+//     const orders = await Order.find({ userId })
+//       .populate("eventId")
+//       .populate("vendorId")
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json({
+//       orders
+//     });
+
+//   } catch (error) {
+
+//     res.status(500).json({
+//       message: error.message
+//     });
+
+//   }
+// };
+
+
 /* ===========================
    GET ORDERS BY VENDOR
 =========================== */

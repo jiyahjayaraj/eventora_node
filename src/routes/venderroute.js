@@ -5,6 +5,7 @@ const {vendorauth} = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
 router.post("/vendors/login", vendorController.login);
+router.post("/vendors/logout", vendorController.logout);
 router.put("/updateProfile",vendorauth,upload.single("profileImage"),vendorController.updateProfile);
 router.get("/vendor_dashboard", vendorauth,vendorController.getProfile);
 router.post("/apply", vendorController.sendVendorApplication);

@@ -40,7 +40,13 @@ const eventSchema = new mongoose.Schema(
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
-        required: true
+        required: true,
+        validate: {
+          validator: function (val) {
+            return val.length === 2;
+          },
+          message: "Coordinates must contain longitude and latitude"
+        }
       }
     },
     // DATE & TIME
@@ -121,5 +127,7 @@ const eventSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+eventSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Event", eventSchema);

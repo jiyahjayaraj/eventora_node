@@ -9,34 +9,11 @@ const upload = require("../middleware/upload");
 router.get("/events",eventController.getAllEvents);
 router.get("/events/vendor/:id", eventController.getEvents);
 router.get("/events/:id",eventController.getEventById)
-router.post(
-  "/events/vendor",
-  vendorauth,
-  upload.single("bannerImage"),
-  eventController.addEvent
-);
-
-router.put(
-  "/events/:id",
-  vendorauth,
-  upload.single("bannerImage"),
-  eventController.updateEvent
-);
-
-router.delete(
-  "/events/:id",
-  vendorauth,
-  eventController.deleteEvent
-);
+router.post("/events/vendor",vendorauth,upload.single("bannerImage"),eventController.addEvent);
+router.put("/events/:id",vendorauth,upload.single("bannerImage"),eventController.updateEvent);
+router.delete("/events/:id",vendorauth,eventController.deleteEvent);
 router.post("/events/:id/feedback", addfeedback);
-router.get(
-  "/vendor/feedbacks",
-  vendorauth,
-  getVendorFeedbacks
-);
-router.delete(
-  "/vendor/feedback/:feedbackId",
-  vendorauth,
-  eventController.deleteVendorFeedback
-);
+router.get("/vendor/feedbacks",vendorauth,getVendorFeedbacks);
+router.delete("/vendor/feedback/:feedbackId",vendorauth,eventController.deleteVendorFeedback);
+
 module.exports = router;
