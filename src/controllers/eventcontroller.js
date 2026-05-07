@@ -4,11 +4,10 @@ const Subscription = require("../models/subscriptionModel");
 const PLANS = require("../config/subscriptionPlans");
 
 exports.addEvent = async (req, res) => {
-  console.log("Body:", req.body);
-  console.log("File:", req.file);
+
 
   try {
-    const vendorId = req.user;
+    const vendorId = req.user.id;
 
     let subscription = await Subscription.findOne({
       vendor: vendorId,
@@ -103,7 +102,7 @@ exports.updateEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (event.vendorId.toString() !== req.user) {
+    if (event.vendorId.toString() !== req.user.id) {
       return res.status(403).json({ message: "Unauthorized access" });
     }
 
@@ -155,7 +154,7 @@ exports.deleteEvent = async (req, res) => {
     if (!event)
       return res.status(404).json({ message: "Event not found" });
 
-    if (event.vendorId.toString() !== req.user)
+    if (event.vendorId.toString() !== req.user.id)
       return res.status(403).json({ message: "Unauthorized access" });
 
     await event.deleteOne();
@@ -207,11 +206,11 @@ exports.getEvents = async (req, res) => {
 };
 
 exports.getAllEvents = async (req, res) => {
-  console.log("aa");
+
 
   try {
     const events = await Event.find().populate("eventType", "name");
-    console.log(events);
+
 
     return res.status(200).json({
       message: "All events fetched",
@@ -266,7 +265,7 @@ exports.addfeedback = async (req, res) => {
     }
 
     event.feedbacks.push({
-      userId: req.user,   // from userAuth middleware
+      userId: req.user.id,   // from userAuth middleware
       comment,            // optional
       rating
     });
@@ -287,7 +286,7 @@ exports.addfeedback = async (req, res) => {
 
 exports.getVendorFeedbacks = async (req, res) => {
   try {
-    const vendorId = req.user; // from vendorauth middleware
+    const vendorId = req.user.id; // from vendorauth middleware
 
     // Get vendor events with feedback
     const events = await Event.find({ vendorId })
@@ -337,14 +336,14 @@ exports.getVendorFeedbacks = async (req, res) => {
 ====================== */
 exports.deleteVendorFeedback = async (req, res) => {
   try {
-    const vendorId = req.user;
+    const vendorId = req.user.id;
     const { feedbackId } = req.params;
 
     // Find event that contains this feedback
     const event = await Event.findOneAndUpdate(
       { vendorId, "feedbacks._id": feedbackId },
       { $pull: { feedbacks: { _id: feedbackId } } },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!event) {

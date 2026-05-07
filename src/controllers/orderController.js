@@ -69,10 +69,15 @@ exports.createOrder = async (req, res) => {
 =========================== */
 exports.getOrdersByUser = async (req, res) => {
   try {
-    const userId = req.user;
+
+    const userId = req.user.id;
+
+    console.log("USER ID:", userId);
 
     if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res.status(401).json({
+        message: "Not authenticated"
+      });
     }
 
     const orders = await Order.find({ userId })
@@ -86,11 +91,15 @@ exports.getOrdersByUser = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("GET USER ORDERS ERROR:", error);
-    res.status(500).json({ message: "Server error while fetching user orders" });
+
+    res.status(500).json({
+      message: "Server error while fetching user orders"
+    });
+
   }
 };
-
 
 // exports.getOrdersByUser = async (req, res) => {
 //   try {

@@ -9,7 +9,7 @@ Vendor only
 exports.getSubscription = async (req, res) => {
   try {
     const subscription = await Subscription.findOne({
-      vendor: req.user
+      vendor: req.user.id
     });
 
     res.status(200).json({
@@ -34,7 +34,7 @@ Creates if not exists
 */
 exports.upgradeSubscription = async (req, res) => {
   try {
-    const vendorId = req.user;
+    const vendorId = req.user.id;
     const { plan } = req.body;
 
     if (!plan) {
@@ -100,7 +100,7 @@ exports.cancelSubscription = async (req, res) => {
   try {
     const updated = await Subscription.findOneAndUpdate(
       {
-        vendor: req.user,
+        vendor: req.user.id,
         status: "active"
       },
       {

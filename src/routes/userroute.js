@@ -1,7 +1,7 @@
     const express = require("express");
     const router = express.Router();
     const userController = require("../controllers/usercontroller");
-    const {vendorauth} = require("../middleware/auth");
+    const {userAuth} = require("../middleware/auth");
 
     // User auth
     router.post("/users/register", userController.registerUser);
@@ -9,6 +9,6 @@
     router.post("/users/logout", userController.logoutUser); // ✅ ADDED
 
     // Get logged-in user profile
-    router.get("/profile",vendorauth, userController.getProfile);
+    router.get("/profile",userAuth, userController.getProfile);
 
     module.exports = router;
