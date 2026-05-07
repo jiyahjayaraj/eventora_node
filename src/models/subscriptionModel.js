@@ -5,7 +5,8 @@ const subscriptionSchema = new mongoose.Schema(
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true
+      required: true,
+      unique: true
     },
 
     plan: {
@@ -45,7 +46,7 @@ const subscriptionSchema = new mongoose.Schema(
 /*
   Only ONE subscription per vendor
 */
-subscriptionSchema.index({ vendor: 1 }, { unique: true });
+// subscriptionSchema.index({ vendor: 1 }, { unique: true });
 
 
 /*

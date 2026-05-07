@@ -47,6 +47,15 @@ exports.addEvent = async (req, res) => {
       ? `/uploads/${req.file.filename}`
       : null;
 
+    const latitude = Number(req.body.latitude);
+    const longitude = Number(req.body.longitude);
+
+    if (!req.body.latitude || !req.body.longitude || isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        message: "Valid Coordinate Data (Latitude & Longitude) is required"
+      });
+    }
+
     const event = await Event.create({
       eventName: req.body.eventName,
       eventType: req.body.eventType,
@@ -110,6 +119,13 @@ exports.updateEvent = async (req, res) => {
     event.totalTickets = Number(req.body.totalTickets) || 0;
     event.earlyPrice = Number(req.body.earlyPrice) || 0;
     event.earlyDeadline = req.body.earlyDeadline || null;
+
+    if (req.body.latitude && req.body.longitude) {
+      event.location = {
+        type: "Point",
+        coordinates: [Number(req.body.longitude), Number(req.body.latitude)]
+      };
+    }
 
     if (req.file) {
       event.bannerImage = `/uploads/${req.file.filename}`;

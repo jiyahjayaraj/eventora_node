@@ -29,10 +29,14 @@ exports.login = async (req, res) => {
     }
 
     const vendor_token = jwt.sign(
-      { id: vendor._id, role: "vendor" },
+      {
+        id: vendor._id,
+        role: "vendor"
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
+
     res.cookie("token", vendor_token, {
       httpOnly: true,
       secure: false, // true only in production https
@@ -62,13 +66,36 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.logout = async (req, res) => {
+  try {
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    return res.status(200).json({
+      message: "Logged out successfully",
+    });
+
+  } catch (error) {
+
+    console.error("LOGOUT ERROR:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 
 
 /* ======================
    GET VENDOR PROFILE
 ====================== */
 exports.getProfile = async (req, res) => {
-  const vendorId = req.user;   // ✅ correct (already id)
+  const vendorId = req.user.id;  // ✅ correct (already id)
 
   try {
     const vendor = await Vendor.findById(vendorId).select("-password");
@@ -90,7 +117,7 @@ exports.getProfile = async (req, res) => {
 ====================== */
 exports.updateProfile = async (req, res) => {
 
-  const vendorId = req.user;
+  const vendorId = req.user.id;
 
   try {
 

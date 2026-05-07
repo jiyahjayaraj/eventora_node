@@ -36,17 +36,23 @@ exports.registerUser = async (req, res) => {
       city,
       interests,
 
-      location: {
+      location:
+  latitude && longitude
+    ? {
         type: "Point",
         coordinates: [longitude, latitude]
       }
+    : undefined
     });
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+   const token = jwt.sign(
+  {
+    id: user._id,
+    role: "user"
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -80,10 +86,13 @@ exports.loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+  {
+    id: user._id,
+    role: "user"
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -106,8 +115,7 @@ exports.getProfile = async (req, res) => {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const user = await User.findById(req.user).select("-password");
-
+const user = await User.findById(req.user.id).select("-password");
     res.status(200).json({
       user
     });
