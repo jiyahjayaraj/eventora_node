@@ -33,8 +33,6 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-
-
     res.cookie("token", vendor_token, {
       httpOnly: true,
       secure: false, // true only in production https

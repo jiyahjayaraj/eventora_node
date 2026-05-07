@@ -1,28 +1,28 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-async function getAIRecommendations(user, events) {
+// async function getAIRecommendations(user, events) {
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+//   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-  const prompt = `
-User Interests: ${user.interests}
+//   const prompt = `
+// User Interests: ${user.interests}
 
-Events:
-${events.map(e => `${e._id} - ${e.eventName} - ${e.description}`).join("\n")}
+// Events:
+// ${events.map(e => `${e._id} - ${e.eventName} - ${e.description}`).join("\n")}
 
-Select the best events for the user.
-Return JSON format:
+// Select the best events for the user.
+// Return JSON format:
 
-[
- { "eventId": "", "match": 95 }
-]
-`;
+// [
+//  { "eventId": "", "match": 95 }
+// ]
+// `;
 
-  const result = await model.generateContent(prompt);
+//   const result = await model.generateContent(prompt);
 
-  return result.response.text();
-}
+//   return result.response.text();
+// }
 
-module.exports = getAIRecommendations;
+// module.exports = getAIRecommendations;
